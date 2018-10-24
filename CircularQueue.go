@@ -26,7 +26,6 @@ func New(s int) *CircularQueue {
 }
 
 // GetHead 获取队首count
-// 在每一个消费者来消费队列时调用，记录到count.txt中，指示目前的进度
 // 不用锁
 func (cq *CircularQueue) GetHead() interface{} {
 	return cq.counts[cq.head]
@@ -60,11 +59,11 @@ func (cq *CircularQueue) EnQueue(count interface{}) bool {
 	if cq.head == -1 {
 		cq.head = 0
 		cq.tail = 0
-		cq.counts[cq.tail] = count
 	} else {
 		cq.tail = (cq.tail + 1) % cq.size
-		cq.counts[cq.tail] = count
 	}
+
+	cq.counts[cq.tail] = count
 	return true
 }
 
@@ -74,7 +73,7 @@ func (cq *CircularQueue) DeQueue() (interface{}, error) {
 	defer cq.mu.Unlock()
 
 	if cq.IsEmpty() {
-		return "", errors.New("Queue is Empty")
+		return nil, errors.New("Queue is Empty")
 	}
 
 	count := cq.counts[cq.head]
